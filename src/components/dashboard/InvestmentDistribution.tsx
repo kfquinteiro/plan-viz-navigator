@@ -21,10 +21,10 @@ export const InvestmentDistribution: React.FC<InvestmentDistributionProps> = ({ 
     }).format(value);
   };
 
-  // Investment by Market
+  // Investment by Market (PRAÇA)
   const investmentByMarket = data.reduce((acc, item) => {
     const market = item.PRAÇA;
-    const investment = parseCurrency(item["R$ NEGOCIADO  TOTAL\n(BRUTO 20%)"]);
+    const investment = parseCurrency(item["R$ NEGOCIADO TOTAL \n(LÍQUIDO)"]);
     acc[market] = (acc[market] || 0) + investment;
     return acc;
   }, {} as Record<string, number>);
@@ -34,10 +34,10 @@ export const InvestmentDistribution: React.FC<InvestmentDistributionProps> = ({ 
     .sort((a, b) => b.investment - a.investment)
     .slice(0, 10);
 
-  // Investment by Month
+  // Investment by Month (MÊS)
   const investmentByMonth = data.reduce((acc, item) => {
     const month = item.MÊS;
-    const investment = parseCurrency(item["R$ NEGOCIADO  TOTAL\n(BRUTO 20%)"]);
+    const investment = parseCurrency(item["R$ NEGOCIADO TOTAL \n(LÍQUIDO)"]);
     acc[month] = (acc[month] || 0) + investment;
     return acc;
   }, {} as Record<string, number>);
@@ -45,10 +45,10 @@ export const InvestmentDistribution: React.FC<InvestmentDistributionProps> = ({ 
   const monthData = Object.entries(investmentByMonth)
     .map(([month, investment]) => ({ month, investment }));
 
-  // Investment by Campaign
+  // Investment by Campaign (CAMPANHA)
   const investmentByCampaign = data.reduce((acc, item) => {
     const campaign = item.CAMPANHA;
-    const investment = parseCurrency(item["R$ NEGOCIADO  TOTAL\n(BRUTO 20%)"]);
+    const investment = parseCurrency(item["R$ NEGOCIADO TOTAL \n(LÍQUIDO)"]);
     acc[campaign] = (acc[campaign] || 0) + investment;
     return acc;
   }, {} as Record<string, number>);
@@ -57,16 +57,29 @@ export const InvestmentDistribution: React.FC<InvestmentDistributionProps> = ({ 
     .map(([campaign, investment]) => ({ campaign, investment }))
     .sort((a, b) => b.investment - a.investment);
 
-  // Investment by Channel
+  // Investment by Channel (MEIO)
   const investmentByChannel = data.reduce((acc, item) => {
     const channel = item.MEIO;
-    const investment = parseCurrency(item["R$ NEGOCIADO  TOTAL\n(BRUTO 20%)"]);
+    const investment = parseCurrency(item["R$ NEGOCIADO TOTAL \n(LÍQUIDO)"]);
     acc[channel] = (acc[channel] || 0) + investment;
     return acc;
   }, {} as Record<string, number>);
 
   const channelData = Object.entries(investmentByChannel)
     .map(([channel, investment]) => ({ channel, investment }));
+
+  // Investment by Channel and Media Outlet (MEIO + VEÍCULO)
+  const investmentByOutlet = data.reduce((acc, item) => {
+    const outletKey = `${item.MEIO} - ${item.VEÍCULO}`;
+    const investment = parseCurrency(item["R$ NEGOCIADO TOTAL \n(LÍQUIDO)"]);
+    acc[outletKey] = (acc[outletKey] || 0) + investment;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const outletData = Object.entries(investmentByOutlet)
+    .map(([outlet, investment]) => ({ outlet, investment }))
+    .sort((a, b) => b.investment - a.investment)
+    .slice(0, 10);
 
   const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#8dd1e1', '#d084d0'];
 
@@ -78,7 +91,7 @@ export const InvestmentDistribution: React.FC<InvestmentDistributionProps> = ({ 
         {/* Investment by Market */}
         <Card className="shadow-lg">
           <CardHeader>
-            <CardTitle>Investment by Market</CardTitle>
+            <CardTitle>Investment by Market (Praça)</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -148,7 +161,7 @@ export const InvestmentDistribution: React.FC<InvestmentDistributionProps> = ({ 
         {/* Investment by Channel */}
         <Card className="shadow-lg">
           <CardHeader>
-            <CardTitle>Investment by Channel</CardTitle>
+            <CardTitle>Investment by Channel (Meio)</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -173,6 +186,30 @@ export const InvestmentDistribution: React.FC<InvestmentDistributionProps> = ({ 
           </CardContent>
         </Card>
       </div>
+
+      {/* Investment by Media Outlet */}
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle>Investment by Channel & Media Outlet (Top 10)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={400}>
+            <BarChart data={outletData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis 
+                dataKey="outlet" 
+                angle={-45}
+                textAnchor="end"
+                height={120}
+                fontSize={11}
+              />
+              <YAxis tickFormatter={(value) => formatCurrency(value)} />
+              <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+              <Bar dataKey="investment" fill="#ffc658" />
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
     </div>
   );
 };

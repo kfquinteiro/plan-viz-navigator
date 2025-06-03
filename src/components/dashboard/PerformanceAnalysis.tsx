@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MediaPlanData } from "@/pages/Index";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ScatterChart, Scatter, ComposedChart, Line, LineChart } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ScatterChart, Scatter } from 'recharts';
 
 interface PerformanceAnalysisProps {
   data: MediaPlanData[];
@@ -25,29 +25,80 @@ export const PerformanceAnalysis: React.FC<PerformanceAnalysisProps> = ({ data }
     return new Intl.NumberFormat('pt-BR').format(value);
   };
 
-  // CPM by Channel
-  const cpmByChannel = data.reduce((acc, item) => {
-    const channel = item.MEIO;
-    const investment = parseCurrency(item["R$ NEGOCIADO  TOTAL\n(BRUTO 20%)"]);
-    const impressions = item["IMPACTOS                   ESTIMADOS"] || 0;
+  // Average CPM by Media Outlet (VEÍCULO)
+  const cpmByOutlet = data.reduce((acc, item) => {
+    const outlet = item.VEÍCULO;
+    const cpm = parseCurrency(item.CPM);
     
-    if (!acc[channel]) {
-      acc[channel] = { investment: 0, impressions: 0 };
+    if (!acc[outlet]) {
+      acc[outlet] = { totalCPM: 0, count: 0 };
     }
-    acc[channel].investment += investment;
-    acc[channel].impressions += impressions;
+    if (cpm > 0) {
+      acc[outlet].totalCPM += cpm;
+      acc[outlet].count += 1;
+    }
     return acc;
   }, {} as Record<string, any>);
 
-  const channelCPMData = Object.entries(cpmByChannel).map(([channel, data]: [string, any]) => ({
-    channel,
-    cpm: data.impressions > 0 ? (data.investment / data.impressions) * 1000 : 0
-  }));
+  const outletCPMData = Object.entries(cpmByOutlet)
+    .map(([outlet, data]: [string, any]) => ({
+      outlet,
+      avgCPM: data.count > 0 ? data.totalCPM / data.count : 0
+    }))
+    .filter(item => item.avgCPM > 0)
+    .sort((a, b) => b.avgCPM - a.avgCPM)
+    .slice(0, 10);
 
-  // CPM by Media Outlet
-  const cpmByOutlet = data.reduce((acc, item) => {
+  // Average CPM by Channel (MEIO)
+  const cpmByChannel = data.reduce((acc, item) => {
+    const channel = item.MEIO;
+    const cpm = parseCurrency(item.CPM);
+    
+    if (!acc[channel]) {
+      acc[channel] = { totalCPM: 0, count: 0 };
+    }
+    if (cpm > 0) {
+      acc[channel].totalCPM += cpm;
+      acc[channel].count += 1;
+    }
+    return acc;
+  }, {} as Record<string, any>);
+
+  const channelCPMData = Object.entries(cpmByChannel)
+    .map(([channel, data]: [string, any]) => ({
+      channel,
+      avgCPM: data.count > 0 ? data.totalCPM / data.count : 0
+    }))
+    .filter(item => item.avgCPM > 0);
+
+  // Average CPC by Media Outlet (VEÍCULO)
+  const cpcByOutlet = data.reduce((acc, item) => {
     const outlet = item.VEÍCULO;
-    const investment = parseCurrency(item["R$ NEGOCIADO  TOTAL\n(BRUTO 20%)"]);
+    const cpc = parseCurrency(item.CPC);
+    
+    if (!acc[outlet]) {
+      acc[outlet] = { totalCPC: 0, count: 0 };
+    }
+    if (cpc > 0) {
+      acc[outlet].totalCPC += cpc;
+      acc[outlet].count += 1;
+    }
+    return acc;
+  }, {} as Record<string, any>);
+
+  const outletCPCData = Object.entries(cpcByOutlet)
+    .map(([outlet, data]: [string, any]) => ({
+      outlet,
+      avgCPC: data.count > 0 ? data.totalCPC / data.count : 0
+    }))
+    .filter(item => item.avgCPC > 0)
+    .sort((a, b) => b.avgCPC - a.avgCPC)
+    .slice(0, 10);
+
+  // Investment vs Impressions by Media Outlet (VEÍCULO)
+  const performanceMatrix = data.reduce((acc, item) => {
+    const outlet = item.VEÍCULO;
+    const investment = parseCurrency(item["R$ NEGOCIADO TOTAL \n(LÍQUIDO)"]);
     const impressions = item["IMPACTOS                   ESTIMADOS"] || 0;
     
     if (!acc[outlet]) {
@@ -58,70 +109,24 @@ export const PerformanceAnalysis: React.FC<PerformanceAnalysisProps> = ({ data }
     return acc;
   }, {} as Record<string, any>);
 
-  const outletCPMData = Object.entries(cpmByOutlet)
+  const matrixData = Object.entries(performanceMatrix)
     .map(([outlet, data]: [string, any]) => ({
       outlet,
-      cpm: data.impressions > 0 ? (data.investment / data.impressions) * 1000 : 0
+      investment: data.investment,
+      impressions: data.impressions
     }))
-    .sort((a, b) => b.cpm - a.cpm)
-    .slice(0, 10);
-
-  // Estimated CPC by Channel
-  const cpcByChannel = data.reduce((acc, item) => {
-    const channel = item.MEIO;
-    const investment = parseCurrency(item["R$ NEGOCIADO  TOTAL\n(BRUTO 20%)"]);
-    const clicks = item.CLIQUES || 0;
-    
-    if (!acc[channel]) {
-      acc[channel] = { investment: 0, clicks: 0 };
-    }
-    acc[channel].investment += investment;
-    acc[channel].clicks += clicks;
-    return acc;
-  }, {} as Record<string, any>);
-
-  const channelCPCData = Object.entries(cpcByChannel).map(([channel, data]: [string, any]) => ({
-    channel,
-    cpc: data.clicks > 0 ? data.investment / data.clicks : 0
-  }));
-
-  // Cost vs Impressions Matrix
-  const costImpressionsMatrix = data.map(item => ({
-    campaign: item.CAMPANHA,
-    market: item.PRAÇA,
-    investment: parseCurrency(item["R$ NEGOCIADO  TOTAL\n(BRUTO 20%)"]),
-    impressions: item["IMPACTOS                   ESTIMADOS"] || 0,
-    efficiency: (item["IMPACTOS                   ESTIMADOS"] || 0) > 0 ? 
-      parseCurrency(item["R$ NEGOCIADO  TOTAL\n(BRUTO 20%)"]) / (item["IMPACTOS                   ESTIMADOS"] || 1) * 1000 : 0
-  })).filter(item => item.investment > 0 && item.impressions > 0);
+    .filter(item => item.investment > 0 && item.impressions > 0)
+    .slice(0, 15);
 
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-gray-900">Performance Analysis</h2>
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* CPM by Channel */}
+        {/* Average CPM by Media Outlet */}
         <Card className="shadow-lg">
           <CardHeader>
-            <CardTitle>CPM by Channel</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={channelCPMData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="channel" />
-                <YAxis tickFormatter={(value) => formatCurrency(value)} />
-                <Tooltip formatter={(value) => formatCurrency(Number(value))} />
-                <Bar dataKey="cpm" fill="#8884d8" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* CPM by Media Outlet */}
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle>CPM by Media Outlet (Top 10)</CardTitle>
+            <CardTitle>Average CPM by Media Outlet (Top 10)</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -131,71 +136,68 @@ export const PerformanceAnalysis: React.FC<PerformanceAnalysisProps> = ({ data }
                   dataKey="outlet" 
                   angle={-45}
                   textAnchor="end"
-                  height={100}
+                  height={120}
                   fontSize={11}
                 />
                 <YAxis tickFormatter={(value) => formatCurrency(value)} />
                 <Tooltip formatter={(value) => formatCurrency(Number(value))} />
-                <Bar dataKey="cpm" fill="#82ca9d" />
+                <Bar dataKey="avgCPM" fill="#8884d8" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        {/* Estimated CPC by Channel */}
+        {/* Average CPM by Channel */}
         <Card className="shadow-lg">
           <CardHeader>
-            <CardTitle>Estimated CPC by Channel</CardTitle>
+            <CardTitle>Average CPM by Channel</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={channelCPCData}>
+              <BarChart data={channelCPMData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="channel" />
                 <YAxis tickFormatter={(value) => formatCurrency(value)} />
                 <Tooltip formatter={(value) => formatCurrency(Number(value))} />
-                <Bar dataKey="cpc" fill="#ffc658" />
+                <Bar dataKey="avgCPM" fill="#82ca9d" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        {/* Performance Efficiency */}
+        {/* Average CPC by Media Outlet */}
         <Card className="shadow-lg">
           <CardHeader>
-            <CardTitle>Campaign Performance Efficiency</CardTitle>
+            <CardTitle>Average CPC by Media Outlet (Top 10)</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={costImpressionsMatrix.slice(0, 10)}>
+              <BarChart data={outletCPCData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis 
-                  dataKey="campaign" 
+                  dataKey="outlet" 
                   angle={-45}
                   textAnchor="end"
-                  height={100}
+                  height={120}
                   fontSize={11}
                 />
                 <YAxis tickFormatter={(value) => formatCurrency(value)} />
-                <Tooltip 
-                  formatter={(value) => formatCurrency(Number(value))}
-                  labelFormatter={(label) => `Campaign: ${label}`}
-                />
-                <Bar dataKey="efficiency" fill="#ff7300" />
+                <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                <Bar dataKey="avgCPC" fill="#ffc658" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
 
-      {/* Cost vs Impressions Matrix */}
+      {/* Investment vs Impressions Matrix by Media Outlet */}
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle>Investment vs Impressions Performance Matrix</CardTitle>
+          <CardTitle>Investment vs Impressions by Media Outlet</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={400}>
-            <ScatterChart data={costImpressionsMatrix}>
+            <ScatterChart data={matrixData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis 
                 dataKey="investment" 
@@ -214,7 +216,7 @@ export const PerformanceAnalysis: React.FC<PerformanceAnalysisProps> = ({ data }
                 ]}
                 labelFormatter={(value, payload) => {
                   const data = payload?.[0]?.payload;
-                  return data ? `${data.campaign} - ${data.market}` : '';
+                  return data ? `Media Outlet: ${data.outlet}` : '';
                 }}
               />
               <Scatter 

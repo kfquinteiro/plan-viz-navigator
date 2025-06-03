@@ -15,9 +15,9 @@ export const KPICards: React.FC<KPICardsProps> = ({ data }) => {
     return parseFloat(value.replace(/[R$.,]/g, '').replace(',', '.')) || 0;
   };
 
-  // Calculate KPIs
+  // Calculate KPIs using correct columns
   const totalInvestment = data.reduce((sum, item) => {
-    return sum + parseCurrency(item["R$ NEGOCIADO  TOTAL\n(BRUTO 20%)"]);
+    return sum + parseCurrency(item["R$ NEGOCIADO TOTAL \n(LÍQUIDO)"]);
   }, 0);
 
   const totalImpressions = data.reduce((sum, item) => {
@@ -28,7 +28,14 @@ export const KPICards: React.FC<KPICardsProps> = ({ data }) => {
     return sum + (item.CLIQUES || 0);
   }, 0);
 
-  const averageCPM = totalImpressions > 0 ? (totalInvestment / totalImpressions) * 1000 : 0;
+  // Calculate average CPM from existing CPM values
+  const validCPMs = data
+    .map(item => parseCurrency(item.CPM))
+    .filter(cpm => cpm > 0);
+  
+  const averageCPM = validCPMs.length > 0 
+    ? validCPMs.reduce((sum, cpm) => sum + cpm, 0) / validCPMs.length 
+    : 0;
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -43,10 +50,10 @@ export const KPICards: React.FC<KPICardsProps> = ({ data }) => {
 
   const kpis = [
     {
-      title: "Total Investment",
+      title: "Total Investment (Líquido)",
       value: formatCurrency(totalInvestment),
       icon: DollarSign,
-      description: "Total media investment",
+      description: "Total net media investment",
       color: "text-green-600",
       bgColor: "bg-green-100"
     },
@@ -54,7 +61,7 @@ export const KPICards: React.FC<KPICardsProps> = ({ data }) => {
       title: "Total Impressions",
       value: formatNumber(totalImpressions),
       icon: Eye,
-      description: "Estimated total reach",
+      description: "Total estimated impacts",
       color: "text-blue-600",
       bgColor: "bg-blue-100"
     },
@@ -62,7 +69,7 @@ export const KPICards: React.FC<KPICardsProps> = ({ data }) => {
       title: "Average CPM",
       value: formatCurrency(averageCPM),
       icon: TrendingUp,
-      description: "Cost per thousand impressions",
+      description: "Average cost per thousand impressions",
       color: "text-purple-600",
       bgColor: "bg-purple-100"
     },
