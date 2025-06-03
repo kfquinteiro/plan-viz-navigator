@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Upload, FileSpreadsheet, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { MediaPlanData } from "@/pages/Index";
+import * as XLSX from 'xlsx';
 
 interface FileUploadProps {
   onDataUpload: (data: MediaPlanData[]) => void;
@@ -18,32 +19,30 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onDataUpload }) => {
     setIsProcessing(true);
     
     try {
-      const text = await file.text();
-      let jsonData;
+      const arrayBuffer = await file.arrayBuffer();
+      const workbook = XLSX.read(arrayBuffer, { type: 'array' });
       
-      try {
-        jsonData = JSON.parse(text);
-      } catch (parseError) {
-        throw new Error("Invalid JSON format. Please check your file structure.");
-      }
-
-      // Ensure data is an array
-      const dataArray = Array.isArray(jsonData) ? jsonData : [jsonData];
+      // Get the first sheet
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
       
-      if (dataArray.length === 0) {
-        throw new Error("No data found in the file.");
+      // Convert to JSON
+      const jsonData = XLSX.utils.sheet_to_json(worksheet);
+      
+      if (jsonData.length === 0) {
+        throw new Error("No data found in the Excel file.");
       }
 
       // Validate data structure
       const requiredFields = ["CAMPANHA", "PRAÇA", "MEIO", "VEÍCULO", "MÊS"];
-      const firstRecord = dataArray[0];
+      const firstRecord = jsonData[0] as any;
       const missingFields = requiredFields.filter(field => !(field in firstRecord));
       
       if (missingFields.length > 0) {
         throw new Error(`Missing required fields: ${missingFields.join(", ")}`);
       }
 
-      onDataUpload(dataArray);
+      onDataUpload(jsonData as MediaPlanData[]);
     } catch (error) {
       console.error("Error processing file:", error);
       toast.error(error instanceof Error ? error.message : "Error processing file");
@@ -57,14 +56,19 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onDataUpload }) => {
     setIsDragOver(false);
     
     const files = Array.from(e.dataTransfer.files);
-    const jsonFile = files.find(file => file.type === "application/json" || file.name.endsWith('.json'));
+    const excelFile = files.find(file => 
+      file.type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" || 
+      file.type === "application/vnd.ms-excel" ||
+      file.name.endsWith('.xlsx') || 
+      file.name.endsWith('.xls')
+    );
     
-    if (!jsonFile) {
-      toast.error("Please upload a JSON file");
+    if (!excelFile) {
+      toast.error("Please upload an Excel file (.xlsx or .xls)");
       return;
     }
     
-    processFile(jsonFile);
+    processFile(excelFile);
   }, [processFile]);
 
   const handleFileInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -106,14 +110,14 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onDataUpload }) => {
               )}
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              {isProcessing ? 'Processing file...' : 'Drop your JSON file here'}
+              {isProcessing ? 'Processing file...' : 'Drop your Excel file here'}
             </h3>
             <p className="text-gray-600 mb-4">
               {isProcessing ? 'Please wait while we process your data' : 'or click to browse and select a file'}
             </p>
             <input
               type="file"
-              accept=".json"
+              accept=".xlsx,.xls"
               onChange={handleFileInput}
               className="hidden"
               id="file-upload"
@@ -141,9 +145,9 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onDataUpload }) => {
             <div>
               <h4 className="font-medium text-amber-800 mb-1">File Format Requirements</h4>
               <ul className="text-sm text-amber-700 space-y-1">
-                <li>• Upload a JSON file (.json extension)</li>
-                <li>• Data should be an array of media plan records</li>
-                <li>• Required fields: CAMPANHA, PRAÇA, MEIO, VEÍCULO, MÊS</li>
+                <li>• Upload an Excel file (.xlsx or .xls extension)</li>
+                <li>• Data should be in the first sheet of the workbook</li>
+                <li>• Required columns: CAMPANHA, PRAÇA, MEIO, VEÍCULO, MÊS</li>
                 <li>• Numeric fields should be properly formatted</li>
               </ul>
             </div>
