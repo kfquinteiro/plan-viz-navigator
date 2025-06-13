@@ -24,7 +24,7 @@ export const InvestmentDistribution: React.FC<InvestmentDistributionProps> = ({ 
   // Investment by Market (PRAÇA)
   const investmentByMarket = data.reduce((acc, item) => {
     const market = item.PRAÇA;
-    const investment = parseCurrency(item["R$ NEGOCIADO TOTAL \n(LÍQUIDO)"]);
+    const investment = Number(item["R$ NEGOCIADO TOTAL \n(LÍQUIDO)"] || 0);
     acc[market] = (acc[market] || 0) + investment;
     return acc;
   }, {} as Record<string, number>);
@@ -37,7 +37,7 @@ export const InvestmentDistribution: React.FC<InvestmentDistributionProps> = ({ 
   // Investment by Month (MÊS)
   const investmentByMonth = data.reduce((acc, item) => {
     const month = item.MÊS;
-    const investment = parseCurrency(item["R$ NEGOCIADO TOTAL \n(LÍQUIDO)"]);
+    const investment = Number(item["R$ NEGOCIADO TOTAL \n(LÍQUIDO)"] || 0);
     acc[month] = (acc[month] || 0) + investment;
     return acc;
   }, {} as Record<string, number>);
@@ -48,7 +48,7 @@ export const InvestmentDistribution: React.FC<InvestmentDistributionProps> = ({ 
   // Investment by Campaign (CAMPANHA)
   const investmentByCampaign = data.reduce((acc, item) => {
     const campaign = item.CAMPANHA;
-    const investment = parseCurrency(item["R$ NEGOCIADO TOTAL \n(LÍQUIDO)"]);
+    const investment = Number(item["R$ NEGOCIADO TOTAL \n(LÍQUIDO)"] || 0);
     acc[campaign] = (acc[campaign] || 0) + investment;
     return acc;
   }, {} as Record<string, number>);
@@ -60,7 +60,7 @@ export const InvestmentDistribution: React.FC<InvestmentDistributionProps> = ({ 
   // Investment by Channel (MEIO)
   const investmentByChannel = data.reduce((acc, item) => {
     const channel = item.MEIO;
-    const investment = parseCurrency(item["R$ NEGOCIADO TOTAL \n(LÍQUIDO)"]);
+    const investment = Number(item["R$ NEGOCIADO TOTAL \n(LÍQUIDO)"] || 0);
     acc[channel] = (acc[channel] || 0) + investment;
     return acc;
   }, {} as Record<string, number>);
@@ -71,7 +71,7 @@ export const InvestmentDistribution: React.FC<InvestmentDistributionProps> = ({ 
   // Investment by Channel and Media Outlet (MEIO + VEÍCULO)
   const investmentByOutlet = data.reduce((acc, item) => {
     const outletKey = `${item.MEIO} - ${item.VEÍCULO}`;
-    const investment = parseCurrency(item["R$ NEGOCIADO TOTAL \n(LÍQUIDO)"]);
+    const investment = Number(item["R$ NEGOCIADO TOTAL \n(LÍQUIDO)"] || 0);
     acc[outletKey] = (acc[outletKey] || 0) + investment;
     return acc;
   }, {} as Record<string, number>);
