@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MediaPlanData } from "@/pages/Index";
@@ -9,34 +8,6 @@ interface KPICardsProps {
 }
 
 export const KPICards: React.FC<KPICardsProps> = ({ data }) => {
-  // Helper function to parse currency values
-  const parseCurrency = (value: string): number => {
-    if (!value || value === "R$-") return 0;
-    return parseFloat(value.replace(/[R$.,]/g, '').replace(',', '.')) || 0;
-  };
-
-  // Calculate KPIs using correct columns
-  const totalInvestment = data.reduce((sum, item) => {
-    return sum + parseCurrency(item["R$ NEGOCIADO TOTAL \n(LÍQUIDO)"]);
-  }, 0);
-
-  const totalImpressions = data.reduce((sum, item) => {
-    return sum + (item["IMPACTOS                   ESTIMADOS"] || 0);
-  }, 0);
-
-  const totalClicks = data.reduce((sum, item) => {
-    return sum + (item.CLIQUES || 0);
-  }, 0);
-
-  // Calculate average CPM from existing CPM values
-  const validCPMs = data
-    .map(item => parseCurrency(item.CPM))
-    .filter(cpm => cpm > 0);
-  
-  const averageCPM = validCPMs.length > 0 
-    ? validCPMs.reduce((sum, cpm) => sum + cpm, 0) / validCPMs.length 
-    : 0;
-
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -47,6 +18,30 @@ export const KPICards: React.FC<KPICardsProps> = ({ data }) => {
   const formatNumber = (value: number) => {
     return new Intl.NumberFormat('pt-BR').format(value);
   };
+
+  const investimentoColuna = "R$ NEGOCIADO TOTAL \n(LÍQUIDO)";
+  const impactosColuna = "IMPACTOS                   ESTIMADOS";
+
+  // Cálculo dos KPIs
+  const totalInvestment = data.reduce((sum, item) => {
+    return sum + Number(item[investimentoColuna] || 0);
+  }, 0);
+
+  const totalImpressions = data.reduce((sum, item) => {
+    return sum + Number(item[impactosColuna] || 0);
+  }, 0);
+
+  const totalClicks = data.reduce((sum, item) => {
+    return sum + Number(item.CLIQUES || 0);
+  }, 0);
+
+  const validCPMs = data
+    .map(item => Number(item.CPM || 0))
+    .filter(cpm => cpm > 0);
+
+  const averageCPM = validCPMs.length > 0
+    ? validCPMs.reduce((sum, cpm) => sum + cpm, 0) / validCPMs.length
+    : 0;
 
   const kpis = [
     {

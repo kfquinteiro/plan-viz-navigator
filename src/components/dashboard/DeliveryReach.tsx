@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MediaPlanData } from "@/pages/Index";
@@ -13,11 +12,24 @@ export const DeliveryReach: React.FC<DeliveryReachProps> = ({ data }) => {
     return new Intl.NumberFormat('pt-BR').format(value);
   };
 
-  // Total INS by Channel and Media Outlet (MEIO + VEÍCULO)
-  const insertionsByOutlet = data.reduce((acc, item) => {
+  // Agrupar registros por CAMPANHA, VEÍCULO, PRAÇA, MEIO
+  const groupedInsertions = new Map<string, number>();
+
+  data.forEach((item) => {
+    const key = `${item.CAMPANHA}||${item.VEÍCULO}||${item.PRAÇA}||${item.MEIO}`;
+    groupedInsertions.set(key, (groupedInsertions.get(key) || 0) + 1);
+  });
+
+  // Gerar um array com dados agregados e INS calculado
+  const aggregatedData = Array.from(groupedInsertions.entries()).map(([key, INS]) => {
+    const [CAMPANHA, VEÍCULO, PRAÇA, MEIO] = key.split('||');
+    return { CAMPANHA, VEÍCULO, PRAÇA, MEIO, INS };
+  });
+
+  // Total INS por MEIO + VEÍCULO
+  const insertionsByOutlet = aggregatedData.reduce((acc, item) => {
     const outletKey = `${item.MEIO} - ${item.VEÍCULO}`;
-    const insertions = Number(item["INS"] ?? 0);
-    acc[outletKey] = (acc[outletKey] || 0) + insertions;
+    acc[outletKey] = (acc[outletKey] || 0) + item.INS;
     return acc;
   }, {} as Record<string, number>);
 
@@ -26,22 +38,12 @@ export const DeliveryReach: React.FC<DeliveryReachProps> = ({ data }) => {
     .sort((a, b) => b.insertions - a.insertions)
     .slice(0, 10);
 
-  // Total INS by Format (FORMATO)
-  const insertionsByFormat = data.reduce((acc, item) => {
-    const format = item.FORMATO;
-    const insertions = Number(item["INS"] ?? 0);
-    acc[format] = (acc[format] || 0) + insertions;
-    return acc;
-  }, {} as Record<string, number>);
+  // Total INS por FORMATO (se quiser usar no futuro)
+  // const insertionsByFormat = ...
 
-  const formatInsertionsData = Object.entries(insertionsByFormat)
-    .map(([format, insertions]) => ({ format, insertions }));
-
-  // Total INS by Market (PRAÇA)
-  const insertionsByMarket = data.reduce((acc, item) => {
-    const market = item.PRAÇA;
-    const insertions = Number(item["INS"] ?? 0);
-    acc[market] = (acc[market] || 0) + insertions;
+  // Total INS por PRAÇA
+  const insertionsByMarket = aggregatedData.reduce((acc, item) => {
+    acc[item.PRAÇA] = (acc[item.PRAÇA] || 0) + item.INS;
     return acc;
   }, {} as Record<string, number>);
 
@@ -50,11 +52,9 @@ export const DeliveryReach: React.FC<DeliveryReachProps> = ({ data }) => {
     .sort((a, b) => b.insertions - a.insertions)
     .slice(0, 10);
 
-  // Total INS by Channel (MEIO)
-  const insertionsByChannel = data.reduce((acc, item) => {
-    const channel = item.MEIO;
-    const insertions = Number(item["INS"] ?? 0);
-    acc[channel] = (acc[channel] || 0) + insertions;
+  // Total INS por MEIO
+  const insertionsByChannel = aggregatedData.reduce((acc, item) => {
+    acc[item.MEIO] = (acc[item.MEIO] || 0) + item.INS;
     return acc;
   }, {} as Record<string, number>);
 
@@ -64,9 +64,9 @@ export const DeliveryReach: React.FC<DeliveryReachProps> = ({ data }) => {
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-gray-900">Delivery and Reach</h2>
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Insertions by Channel & Media Outlet */}
+        {/* Por Canal + Veículo */}
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle>Insertions by Channel & Media Outlet (Top 10)</CardTitle>
@@ -75,46 +75,16 @@ export const DeliveryReach: React.FC<DeliveryReachProps> = ({ data }) => {
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={outletInsertionsData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="outlet" 
-                  angle={-45}
-                  textAnchor="end"
-                  height={120}
-                  fontSize={11}
-                />
+                <XAxis dataKey="outlet" angle={-45} textAnchor="end" height={120} fontSize={11} />
                 <YAxis />
                 <Tooltip formatter={(value) => formatNumber(Number(value))} />
-                <Bar dataKey="insertions" fill="red" />
+                <Bar dataKey="insertions" fill="#8884d8" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        {/* Insertions by Format */}
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle>Insertions by Format</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={formatInsertionsData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="format" 
-                  angle={-45}
-                  textAnchor="end"
-                  height={100}
-                  fontSize={12}
-                />
-                <YAxis />
-                <Tooltip formatter={(value) => formatNumber(Number(value))} />
-                <Bar dataKey="insertions" fill="red" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Insertions by Market */}
+        {/* Por Praça */}
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle>Insertions by Market (Top 10)</CardTitle>
@@ -123,22 +93,16 @@ export const DeliveryReach: React.FC<DeliveryReachProps> = ({ data }) => {
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={marketInsertionsData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="market" 
-                  angle={-45}
-                  textAnchor="end"
-                  height={100}
-                  fontSize={12}
-                />
+                <XAxis dataKey="market" angle={-45} textAnchor="end" height={100} fontSize={12} />
                 <YAxis />
                 <Tooltip formatter={(value) => formatNumber(Number(value))} />
-                <Bar dataKey="insertions" fill="red" />
+                <Bar dataKey="insertions" fill="#ffc658" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        {/* Insertions by Channel */}
+        {/* Por Canal */}
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle>Insertions by Channel</CardTitle>
@@ -150,7 +114,7 @@ export const DeliveryReach: React.FC<DeliveryReachProps> = ({ data }) => {
                 <XAxis dataKey="channel" />
                 <YAxis />
                 <Tooltip formatter={(value) => formatNumber(Number(value))} />
-                <Bar dataKey="insertions" fill="red" />
+                <Bar dataKey="insertions" fill="#ff7300" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
