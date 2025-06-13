@@ -84,7 +84,7 @@ export const DeliveryReach: React.FC<DeliveryReachProps> = ({ data }) => {
                 />
                 <YAxis />
                 <Tooltip formatter={(value) => formatNumber(Number(value))} />
-                <Bar dataKey="insertions" fill="#8884d8" />
+                <Bar dataKey="insertions" fill="red" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -108,7 +108,7 @@ export const DeliveryReach: React.FC<DeliveryReachProps> = ({ data }) => {
                 />
                 <YAxis />
                 <Tooltip formatter={(value) => formatNumber(Number(value))} />
-                <Bar dataKey="insertions" fill="#82ca9d" />
+                <Bar dataKey="insertions" fill="red" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -132,7 +132,7 @@ export const DeliveryReach: React.FC<DeliveryReachProps> = ({ data }) => {
                 />
                 <YAxis />
                 <Tooltip formatter={(value) => formatNumber(Number(value))} />
-                <Bar dataKey="insertions" fill="#ffc658" />
+                <Bar dataKey="insertions" fill="red" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -150,7 +150,7 @@ export const DeliveryReach: React.FC<DeliveryReachProps> = ({ data }) => {
                 <XAxis dataKey="channel" />
                 <YAxis />
                 <Tooltip formatter={(value) => formatNumber(Number(value))} />
-                <Bar dataKey="insertions" fill="#ff7300" />
+                <Bar dataKey="insertions" fill="red" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
