@@ -16,7 +16,7 @@ export const DeliveryReach: React.FC<DeliveryReachProps> = ({ data }) => {
   // Total INS by Channel and Media Outlet (MEIO + VEÍCULO)
   const insertionsByOutlet = data.reduce((acc, item) => {
     const outletKey = `${item.MEIO} - ${item.VEÍCULO}`;
-    const insertions = item.INS || 0;
+    const insertions = Number(item["INS"] ?? 0);
     acc[outletKey] = (acc[outletKey] || 0) + insertions;
     return acc;
   }, {} as Record<string, number>);
@@ -29,7 +29,7 @@ export const DeliveryReach: React.FC<DeliveryReachProps> = ({ data }) => {
   // Total INS by Format (FORMATO)
   const insertionsByFormat = data.reduce((acc, item) => {
     const format = item.FORMATO;
-    const insertions = item.INS || 0;
+    const insertions = Number(item["INS"] ?? 0);
     acc[format] = (acc[format] || 0) + insertions;
     return acc;
   }, {} as Record<string, number>);
@@ -40,7 +40,7 @@ export const DeliveryReach: React.FC<DeliveryReachProps> = ({ data }) => {
   // Total INS by Market (PRAÇA)
   const insertionsByMarket = data.reduce((acc, item) => {
     const market = item.PRAÇA;
-    const insertions = item.INS || 0;
+    const insertions = Number(item["INS"] ?? 0);
     acc[market] = (acc[market] || 0) + insertions;
     return acc;
   }, {} as Record<string, number>);
@@ -53,7 +53,7 @@ export const DeliveryReach: React.FC<DeliveryReachProps> = ({ data }) => {
   // Total INS by Channel (MEIO)
   const insertionsByChannel = data.reduce((acc, item) => {
     const channel = item.MEIO;
-    const insertions = item.INS || 0;
+    const insertions = Number(item["INS"] ?? 0);
     acc[channel] = (acc[channel] || 0) + insertions;
     return acc;
   }, {} as Record<string, number>);
