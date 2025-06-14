@@ -46,13 +46,13 @@ const Index = () => {
   const handleDataUpload = (uploadedData: MediaPlanData[]) => {
     setData(uploadedData);
     setIsDataLoaded(true);
-    toast.success(`Successfully loaded ${uploadedData.length} media plan records!`);
+    toast.success(`Carregado com sucesso ${uploadedData.length} registros de planejamento de mídia!`);
   };
 
   const handleReset = () => {
     setData([]);
     setIsDataLoaded(false);
-    toast.info("Dashboard reset. Upload new data to continue.");
+    toast.info("O dashboard resetou. Suba novos dados para continuar.");
   };
 
   if (!isDataLoaded) {
@@ -61,10 +61,10 @@ const Index = () => {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              Media Plan Dashboard
+              Dashboard de Plano de Mídia
             </h1>
             <p className="text-xl text-gray-600">
-              Upload your media plan data to generate comprehensive analytics and insights
+              Suba seu plano de mídia aqui para gerar análises e insights da campanha
             </p>
           </div>
 
@@ -73,9 +73,9 @@ const Index = () => {
               <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
                 <FileSpreadsheet className="w-8 h-8 text-blue-600" />
               </div>
-              <CardTitle className="text-2xl text-gray-900">Upload Media Plan Data</CardTitle>
+              <CardTitle className="text-2xl text-gray-900">Suba o arquivo do planejamento</CardTitle>
               <CardDescription className="text-lg">
-                Upload your JSON file containing media plan records to start analyzing
+                Vamos começar a análisar seu plano de mídia agora?
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -87,15 +87,15 @@ const Index = () => {
             <Card className="bg-white/60 backdrop-blur-sm border-0">
               <CardContent className="p-6 text-center">
                 <BarChart3 className="w-8 h-8 text-blue-600 mx-auto mb-3" />
-                <h3 className="font-semibold text-gray-900 mb-2">Comprehensive Analytics</h3>
-                <p className="text-gray-600 text-sm">Get insights into investment distribution, performance metrics, and delivery analysis</p>
+                <h3 className="font-semibold text-gray-900 mb-2">Análises poderosas</h3>
+                <p className="text-gray-600 text-sm">Encontre insights sobre investimento, distribuição, métricas de performance, e entregue inteligência para o cliente.</p>
               </CardContent>
             </Card>
             <Card className="bg-white/60 backdrop-blur-sm border-0">
               <CardContent className="p-6 text-center">
                 <Upload className="w-8 h-8 text-green-600 mx-auto mb-3" />
-                <h3 className="font-semibold text-gray-900 mb-2">Easy Data Import</h3>
-                <p className="text-gray-600 text-sm">Simply drag and drop your JSON file or click to browse and upload</p>
+                <h3 className="font-semibold text-gray-900 mb-2">Fácil de importar</h3>
+                <p className="text-gray-600 text-sm">Apenas arraste e solte seu arquivo de Excel ou clique para buscar no computador</p>
               </CardContent>
             </Card>
             <Card className="bg-white/60 backdrop-blur-sm border-0">
@@ -103,8 +103,8 @@ const Index = () => {
                 <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
                   <span className="text-purple-600 font-bold text-sm">KPI</span>
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Key Performance Indicators</h3>
-                <p className="text-gray-600 text-sm">Monitor total investment, impressions, CPM, clicks and other critical metrics</p>
+                <h3 className="font-semibold text-gray-900 mb-2">Indicadores de performance</h3>
+                <p className="text-gray-600 text-sm">Monitore o total do investimento, impressões, CPM, cliques e outras métricas-chave</p>
               </CardContent>
             </Card>
           </div>
@@ -118,11 +118,11 @@ const Index = () => {
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Media Plan Dashboard</h1>
-            <p className="text-gray-600">{data.length} records loaded</p>
+            <h1 className="text-2xl font-bold text-gray-900">Dashboard de Planejamento de Mídia</h1>
+            <p className="text-gray-600">{data.length} registros carregados</p>
           </div>
           <Button onClick={handleReset} variant="outline">
-            Upload New Data
+            Carregue novos dados
           </Button>
         </div>
       </div>

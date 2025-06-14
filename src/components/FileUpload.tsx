@@ -30,7 +30,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onDataUpload }) => {
       const jsonData = XLSX.utils.sheet_to_json(worksheet);
       
       if (jsonData.length === 0) {
-        throw new Error("No data found in the Excel file.");
+        throw new Error("Nenhum dado foi encontrado no arquivo de Excel.");
       }
 
       // Validate data structure
@@ -39,13 +39,13 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onDataUpload }) => {
       const missingFields = requiredFields.filter(field => !(field in firstRecord));
       
       if (missingFields.length > 0) {
-        throw new Error(`Missing required fields: ${missingFields.join(", ")}`);
+        throw new Error(`Não encontramos no arquivo os campos obrigatórios: ${missingFields.join(", ")}`);
       }
 
       onDataUpload(jsonData as MediaPlanData[]);
     } catch (error) {
-      console.error("Error processing file:", error);
-      toast.error(error instanceof Error ? error.message : "Error processing file");
+      console.error("Erro ao processar o arquivo:", error);
+      toast.error(error instanceof Error ? error.message : "Erro ao processar o arquivo");
     } finally {
       setIsProcessing(false);
     }
@@ -64,7 +64,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onDataUpload }) => {
     );
     
     if (!excelFile) {
-      toast.error("Please upload an Excel file (.xlsx or .xls)");
+      toast.error("Por favor, suba um arquivo em excel (.xlsx ou .xls)");
       return;
     }
     
@@ -110,10 +110,10 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onDataUpload }) => {
               )}
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              {isProcessing ? 'Processing file...' : 'Drop your Excel file here'}
+              {isProcessing ? 'Processando o arquivo...' : 'Solte seu arquivo Excel aqui'}
             </h3>
             <p className="text-gray-600 mb-4">
-              {isProcessing ? 'Please wait while we process your data' : 'or click to browse and select a file'}
+              {isProcessing ? 'Por favor, aguarde enquanto processamos os dados' : 'ou use o botão para buscar o arquivo na sua máquina'}
             </p>
             <input
               type="file"
